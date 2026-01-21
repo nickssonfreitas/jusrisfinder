@@ -1,0 +1,55 @@
+@startuml c4-component-search
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+title Diagrama de Componentes - Search Service
+
+LAYOUT_WITH_LEGEND()
+
+Container(apigateway, "API Gateway", "Kong / AWS API Gateway", "Encaminha requisições autenticadas")
+
+ContainerDb(qdrant, "Qdrant", "Qdrant Vector DB", "Embeddings e busca vetorial")
+ContainerDb(postgres, "PostgreSQL", "PostgreSQL 16", "Metadata e permissões")
+ContainerDb(redis, "Redis", "Redis 7", "Cache de queries")
+
+System_Ext(openai, "OpenAI API", "text-embedding-3-large para embeddings de query")
+
+Container_Boundary(searchsvc, "Search Service") {
+    Component(api, "Search API", "FastAPI Router", "Endpoint REST /search")
+
+    Component(queryparser, "Query Parser", "Python/LangChain", "Extrai entidades: nome, data, tipo de documento, localização")
+
+    Component(queryembedder, "Query Embedder", "OpenAI Client", "Gera embedding vetorial 3072d da query")
+
+    Component(hybridsearch, "Hybrid Search Engine", "Python/Qdrant Client", "Combina busca vetorial (semântica) + keyword (BM25)")
+
+    Component(accessfilter, "Access Control Filter", "Python/ACL Module", "Valida permissões do usuário AD antes de retornar resultados")
+
+    Component(reranker, "Reranker", "Cohere/Cross-encoder", "Reordena resultados usando cross-encoder para melhor relevância")
+
+    Component(formatter, "Result Formatter", "Pydantic Models", "Formata resposta JSON com metadata, highlights, scores")
+
+    Component(cachectl, "Cache Controller", "Redis Client", "Gerencia cache de queries frequentes")
+}
+
+Rel(apigateway, api, "POST /search", "HTTP/JSON")
+
+Rel(api, queryparser, "Extrai entidades", "Python call")
+Rel(queryparser, queryembedder, "Envia texto processado", "Python call")
+
+Rel(queryembedder, openai, "Gera embedding", "HTTPS/REST")
+Rel(queryembedder, hybridsearch, "Passa embedding + filtros", "Python call")
+
+Rel(hybridsearch, qdrant, "Busca vetorial", "gRPC")
+Rel(hybridsearch, postgres, "Busca keyword (FTS)", "SQL/TCP")
+Rel(hybridsearch, accessfilter, "Passa resultados brutos", "Python call")
+
+Rel(accessfilter, postgres, "Valida permissões ACL", "SQL/TCP")
+Rel(accessfilter, reranker, "Envia resultados filtrados", "Python call")
+
+Rel(reranker, formatter, "Retorna top-k reordenados", "Python call")
+Rel(formatter, api, "Resposta formatada", "Pydantic model")
+
+Rel(api, cachectl, "Verifica/salva cache", "Python call")
+Rel(cachectl, redis, "GET/SET", "Redis Protocol")
+
+@enduml

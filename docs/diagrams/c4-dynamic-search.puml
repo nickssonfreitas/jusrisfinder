@@ -1,0 +1,54 @@
+@startuml c4-dynamic-search
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Dynamic.puml
+
+title Diagrama Dinâmico - Pipeline de Busca
+
+LAYOUT_WITH_LEGEND()
+
+Person(user, "Usuário", "Advogado Interno")
+Container(spa, "Frontend SPA", "React")
+Container(apigateway, "API Gateway", "Kong")
+Container(searchsvc, "Search Service", "FastAPI")
+ContainerDb(redis, "Redis", "Cache")
+ContainerDb(qdrant, "Qdrant", "Vector DB")
+ContainerDb(postgres, "PostgreSQL", "Metadata")
+System_Ext(openai, "OpenAI API", "Embeddings")
+
+Rel_R(user, spa, "1. Digite query: 'documentos de EPI do funcionário João Silva de 2020 a 2023'", "HTTPS")
+
+Rel_D(spa, apigateway, "2. POST /api/v1/search + JWT token", "HTTPS/JSON")
+
+Rel_D(apigateway, searchsvc, "3. Encaminha request autenticado", "HTTP/JSON")
+
+Rel_D(searchsvc, redis, "4. Verifica cache por hash da query", "GET cache_key")
+
+Rel_R(searchsvc, searchsvc, "5. MISS - Processa query")
+
+Rel_D(searchsvc, searchsvc, "6. Query Parser extrai: nome='João Silva', tipo='EPI', data_inicio=2020, data_fim=2023")
+
+Rel_D(searchsvc, openai, "7. Gera embedding da query", "POST /embeddings")
+
+Rel_U(openai, searchsvc, "8. Retorna vetor 3072d", "JSON")
+
+Rel_D(searchsvc, qdrant, "9. Busca vetorial + filtros metadata", "gRPC: search(vector, filters)")
+
+Rel_D(searchsvc, postgres, "10. Busca keyword BM25 (termos exatos)", "SQL: ts_rank")
+
+Rel_U(qdrant, searchsvc, "11. Retorna top 100 resultados vetoriais", "gRPC")
+Rel_U(postgres, searchsvc, "12. Retorna top 50 resultados keyword", "SQL result")
+
+Rel_D(searchsvc, searchsvc, "13. Hybrid Fusion (RRF): combina resultados")
+
+Rel_D(searchsvc, postgres, "14. Access Filter: valida ACL do usuário", "SQL: user_permissions")
+
+Rel_D(searchsvc, searchsvc, "15. Reranker: cross-encoder reordena top 20")
+
+Rel_D(searchsvc, redis, "16. Salva resultado em cache (TTL 1h)", "SET cache_key")
+
+Rel_U(searchsvc, apigateway, "17. Retorna top 10 documentos ranqueados", "JSON")
+
+Rel_U(apigateway, spa, "18. Response JSON", "HTTPS")
+
+Rel_U(spa, user, "19. Exibe lista de documentos com highlights e score de relevância", "UI")
+
+@enduml

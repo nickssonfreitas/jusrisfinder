@@ -1,0 +1,28 @@
+@startuml c4-context
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+title Diagrama de Contexto - JurisFinder
+
+LAYOUT_WITH_LEGEND()
+
+Person(advogado, "Advogado Interno", "Usuário principal que busca documentos para processos trabalhistas")
+Person(analista, "Analista Jurídico", "Apoia na análise e organização de documentos")
+
+System(jurisfinder, "JurisFinder", "Sistema inteligente de busca e recuperação de documentos baseado em RAG para processos trabalhistas")
+
+System_Ext(ad, "Active Directory", "Sistema de autenticação corporativa LDAP/SSO")
+System_Ext(elo, "Sistema ELO", "Sistema de gestão documental para upload de pacotes")
+System_Ext(fileserver, "File Server", "Pastas de rede compartilhadas (SMB/CIFS)")
+System_Ext(sharepoint, "SharePoint Online", "Repositório de documentos corporativos")
+System_Ext(sense, "Sistema Sense", "Sistema legado com documentos trabalhistas")
+
+Rel(advogado, jurisfinder, "Busca documentos, visualiza resultados, exporta pacotes", "HTTPS")
+Rel(analista, jurisfinder, "Busca documentos, aplica filtros, exporta relatórios", "HTTPS")
+
+Rel(jurisfinder, ad, "Autentica usuários, valida permissões", "LDAP/TCP 389,636")
+Rel(jurisfinder, elo, "Envia pacotes de documentos", "API REST/HTTPS")
+Rel(jurisfinder, fileserver, "Indexa e recupera documentos", "SMB/CIFS TCP 445")
+Rel(jurisfinder, sharepoint, "Indexa e recupera documentos", "Graph API/HTTPS")
+Rel(jurisfinder, sense, "Indexa e recupera documentos", "API TBD")
+
+@enduml

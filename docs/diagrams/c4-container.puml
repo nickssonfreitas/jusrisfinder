@@ -1,0 +1,66 @@
+@startuml c4-container
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+title Diagrama de Container - JurisFinder
+
+LAYOUT_WITH_LEGEND()
+
+Person(user, "Usuário Jurídico", "Advogado ou Analista Jurídico")
+
+System_Ext(ad, "Active Directory", "Autenticação corporativa")
+System_Ext(elo, "Sistema ELO", "Upload de documentos")
+System_Ext(fileserver, "File Server", "Pastas de rede SMB/CIFS")
+System_Ext(sharepoint, "SharePoint Online", "Graph API")
+System_Ext(sense, "Sistema Sense", "Sistema legado")
+
+System_Boundary(jurisfinder, "JurisFinder") {
+    Container(spa, "Frontend SPA", "React 18 + TypeScript + TailwindCSS", "Interface de busca, visualização de resultados e gestão de pacotes")
+
+    Container(apigateway, "API Gateway", "Kong OSS / AWS API Gateway", "Rate limiting, autenticação JWT, logging, roteamento")
+
+    Container(searchsvc, "Search Service", "Python 3.12 + FastAPI", "Query parsing, hybrid search (vetorial + keyword), reranking, access control")
+
+    Container(indexersvc, "Indexer Service", "Python 3.12 + Celery", "Crawlers, embeddings, chunking, metadata extraction, processamento assíncrono")
+
+    Container(exportsvc, "Export Service", "Python 3.12 + FastAPI", "Package builder, geração de PDF, integração com ELO")
+
+    ContainerDb(postgres, "PostgreSQL", "PostgreSQL 16", "Metadata, usuários, auditoria, histórico")
+
+    ContainerDb(qdrant, "Qdrant", "Qdrant Vector DB", "Armazena embeddings (3072d) e metadados para busca semântica")
+
+    ContainerDb(redis, "Redis", "Redis 7", "Cache de queries, sessões, filas de tarefas Celery")
+}
+
+Boundary(connectors, "Conectores de Fontes") {
+    Container(fsconn, "FileServer Connector", "Python/smbprotocol", "Acesso SMB/CIFS a pastas de rede")
+    Container(spconn, "SharePoint Connector", "Python/msgraph", "Acesso via Graph API")
+    Container(senseconn, "Sense Connector", "Python/Custom", "Integração com Sense (API ou RPA)")
+}
+
+Rel(user, spa, "Acessa", "HTTPS")
+Rel(spa, apigateway, "Envia requisições", "HTTPS/REST")
+
+Rel(apigateway, searchsvc, "Encaminha buscas", "HTTP/JSON")
+Rel(apigateway, exportsvc, "Encaminha exportações", "HTTP/JSON")
+Rel(apigateway, ad, "Valida JWT", "LDAP/TCP")
+
+Rel(searchsvc, qdrant, "Busca vetorial", "gRPC/HTTP")
+Rel(searchsvc, postgres, "Consulta metadata", "SQL/TCP 5432")
+Rel(searchsvc, redis, "Cache de resultados", "Redis Protocol/TCP 6379")
+
+Rel(indexersvc, qdrant, "Armazena embeddings", "gRPC/HTTP")
+Rel(indexersvc, postgres, "Salva metadata", "SQL/TCP 5432")
+Rel(indexersvc, redis, "Gerencia filas Celery", "Redis Protocol/TCP 6379")
+
+Rel(indexersvc, fsconn, "Invoca crawler", "Python call")
+Rel(indexersvc, spconn, "Invoca crawler", "Python call")
+Rel(indexersvc, senseconn, "Invoca crawler", "Python call")
+
+Rel(fsconn, fileserver, "Lê documentos", "SMB/CIFS TCP 445")
+Rel(spconn, sharepoint, "Lê documentos", "Graph API/HTTPS")
+Rel(senseconn, sense, "Lê documentos", "API TBD")
+
+Rel(exportsvc, postgres, "Busca metadados", "SQL/TCP 5432")
+Rel(exportsvc, elo, "Envia pacotes", "API REST/HTTPS")
+
+@enduml

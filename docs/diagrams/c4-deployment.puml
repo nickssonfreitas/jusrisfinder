@@ -1,0 +1,89 @@
+@startuml c4-deployment
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Deployment.puml
+
+title Diagrama de Deployment - JurisFinder
+
+LAYOUT_WITH_LEGEND()
+
+Deployment_Node(azure, "Azure Cloud", "Microsoft Azure") {
+    Deployment_Node(aks, "AKS Cluster", "Kubernetes 1.28") {
+        Deployment_Node(node1, "Node Pool - App", "3 nodes × Standard_D4s_v3 (4 vCPU, 16GB RAM)") {
+            Container(spa, "Frontend SPA", "Nginx + React Build")
+            Container(apigateway, "API Gateway", "Kong OSS")
+            Container(searchsvc, "Search Service", "FastAPI × 3 pods")
+            Container(exportsvc, "Export Service", "FastAPI × 2 pods")
+        }
+
+        Deployment_Node(node2, "Node Pool - Workers", "2 nodes × Standard_D4s_v3") {
+            Container(indexersvc, "Indexer Service", "Celery Workers × 4 pods")
+            Container(scheduler, "Celery Beat", "Scheduler × 1 pod")
+        }
+    }
+
+    Deployment_Node(postgres_managed, "Azure Database for PostgreSQL", "Flexible Server - 4 vCPU, 16GB RAM, 500GB SSD") {
+        ContainerDb(postgres, "PostgreSQL 16", "Metadata, ACL, Audit")
+    }
+
+    Deployment_Node(redis_managed, "Azure Cache for Redis", "Standard C1 - 4GB") {
+        ContainerDb(redis, "Redis 7", "Cache + Celery Queue")
+    }
+
+    Deployment_Node(storage, "Azure Blob Storage", "Hot Tier - 1TB") {
+        ContainerDb(blob, "Blob Storage", "Document cache, exports")
+    }
+}
+
+Deployment_Node(qdrant_cloud, "Qdrant Cloud", "Managed Service") {
+    Deployment_Node(qdrant_cluster, "Cluster - Production", "2M vectors, 3 replicas, 16GB RAM") {
+        ContainerDb(qdrant, "Qdrant Vector DB", "Embeddings 3072d")
+    }
+}
+
+Deployment_Node(corporate, "ThyssenKrupp Corporate Network", "On-Premises") {
+    Deployment_Node(ad_server, "Domain Controller", "Windows Server 2022") {
+        System_Ext(ad, "Active Directory", "LDAP/Kerberos")
+    }
+
+    Deployment_Node(file_server, "File Server", "Windows Server 2022") {
+        System_Ext(fileserver, "Pastas de Rede", "SMB/CIFS")
+    }
+
+    Deployment_Node(elo_server, "ELO Server", "Application Server") {
+        System_Ext(elo, "Sistema ELO", "Document Management")
+    }
+}
+
+Deployment_Node(microsoft365, "Microsoft 365", "Cloud SaaS") {
+    System_Ext(sharepoint, "SharePoint Online", "Graph API")
+}
+
+Deployment_Node(openai_cloud, "OpenAI Platform", "Cloud API") {
+    System_Ext(openai, "OpenAI API", "text-embedding-3-large")
+}
+
+Deployment_Node(vpn, "Azure ExpressRoute / VPN Gateway", "Hybrid Connectivity") {
+}
+
+Rel(spa, apigateway, "HTTPS", "TLS 1.3")
+Rel(apigateway, searchsvc, "HTTP", "Internal")
+Rel(apigateway, exportsvc, "HTTP", "Internal")
+
+Rel(searchsvc, qdrant, "gRPC", "Public Internet + API Key")
+Rel(searchsvc, postgres, "PostgreSQL", "Private Endpoint")
+Rel(searchsvc, redis, "Redis Protocol", "Private Endpoint")
+Rel(searchsvc, openai, "HTTPS", "Public Internet")
+
+Rel(indexersvc, qdrant, "gRPC", "Public Internet + API Key")
+Rel(indexersvc, postgres, "PostgreSQL", "Private Endpoint")
+Rel(indexersvc, redis, "Redis Protocol", "Private Endpoint")
+Rel(indexersvc, blob, "HTTPS", "Private Endpoint")
+
+Rel(apigateway, ad, "LDAPS", "VPN/ExpressRoute")
+Rel(indexersvc, fileserver, "SMB", "VPN/ExpressRoute")
+Rel(indexersvc, sharepoint, "HTTPS Graph API", "Public Internet + OAuth2")
+Rel(exportsvc, elo, "HTTPS REST", "VPN/ExpressRoute")
+
+Rel(aks, vpn, "Hybrid Connection", "")
+Rel(vpn, corporate, "Private Network", "")
+
+@enduml

@@ -1,0 +1,60 @@
+@startuml c4-dynamic-indexing
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Dynamic.puml
+
+title Diagrama Dinâmico - Pipeline de Indexação
+
+LAYOUT_WITH_LEGEND()
+
+Container(scheduler, "Scheduler", "Celery Beat")
+Container(indexersvc, "Indexer Service", "Celery Worker")
+Container(connector, "Source Connector", "FileServer/SharePoint")
+System_Ext(source, "Fonte de Dados", "File Server/SharePoint")
+System_Ext(openai, "OpenAI API", "Embeddings")
+System_Ext(docint, "Azure Doc Intelligence", "OCR")
+ContainerDb(postgres, "PostgreSQL", "Metadata")
+ContainerDb(qdrant, "Qdrant", "Vector DB")
+ContainerDb(redis, "Redis", "Task Queue")
+
+Rel_D(scheduler, redis, "1. Agenda tarefa diária: index_new_documents", "PUBLISH task")
+
+Rel_D(redis, indexersvc, "2. Worker consome tarefa", "Celery Protocol")
+
+Rel_D(indexersvc, connector, "3. Invoca crawler para listar documentos", "Python call")
+
+Rel_D(connector, source, "4. Lista arquivos novos/modificados (lastModified > last_sync)", "SMB/Graph API")
+
+Rel_U(source, connector, "5. Retorna lista: 150 novos PDFs, 30 DOCXs", "File list")
+
+Rel_U(connector, indexersvc, "6. Lista de documentos a processar", "Python list")
+
+Rel_D(indexersvc, postgres, "7. Verifica documentos já indexados (hash SHA256)", "SQL: SELECT hash")
+
+Rel_D(indexersvc, indexersvc, "8. Filtra: 120 documentos realmente novos")
+
+Rel_D(indexersvc, connector, "9. Download conteúdo binário", "Batch download")
+
+Rel_D(connector, source, "10. Download documentos", "SMB/Graph API")
+
+Rel_D(indexersvc, indexersvc, "11. Parser extrai texto (PDF: PyPDF2, DOCX: python-docx)")
+
+Rel_D(indexersvc, docint, "12. Se imagem/scan: envia para OCR", "POST /analyze")
+
+Rel_U(docint, indexersvc, "13. Retorna texto extraído", "JSON")
+
+Rel_D(indexersvc, indexersvc, "14. Chunking: divide em chunks de 512 tokens com overlap de 50")
+
+Rel_D(indexersvc, indexersvc, "15. Gera ~350 chunks (120 docs × média 3 chunks/doc)")
+
+Rel_D(indexersvc, openai, "16. Batch embeddings (350 chunks)", "POST /embeddings")
+
+Rel_U(openai, indexersvc, "17. Retorna 350 vetores 3072d", "JSON array")
+
+Rel_D(indexersvc, qdrant, "18. Batch insert vetores + payload metadata", "gRPC: upsert")
+
+Rel_D(indexersvc, postgres, "19. INSERT metadata (doc_id, path, hash, indexed_at)", "SQL INSERT")
+
+Rel_D(indexersvc, redis, "20. Atualiza status: indexing_complete", "SET status_key")
+
+Rel_D(indexersvc, scheduler, "21. Confirma conclusão da tarefa", "Celery ACK")
+
+@enduml
