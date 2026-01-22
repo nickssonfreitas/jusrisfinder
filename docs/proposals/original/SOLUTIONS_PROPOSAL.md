@@ -639,8 +639,8 @@ class FileServerConnector:
 | Papel | Quantidade | Alocacao | Responsabilidades |
 |-------|------------|----------|-------------------|
 | **Tech Lead / Arquiteto** | 1 | 100% | Arquitetura, decisoes tecnicas, code review |
-| **Backend Developer Senior** | 2 | 100% | RAG pipeline, conectores, APIs |
-| **Frontend Developer** | 1 | 100% | Interface React, UX |
+| **Developer Senior Full Stack** | 1 | 100% | RAG pipeline, conectores, APIs | Interface React, UX 
+| **Frontend Developer** | 1 | 100% | 
 | **ML Engineer** | 1 | 50% | Embeddings, fine-tuning, metricas |
 | **DevOps/SRE** | 1 | 50% | Infraestrutura, CI/CD, monitoramento |
 | **QA Engineer** | 1 | 50% (fases finais) | Testes, automacao |
