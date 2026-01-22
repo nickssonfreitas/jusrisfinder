@@ -1,0 +1,78 @@
+@startuml JurisFinder - Matriz de Riscos LEAN
+!theme plain
+
+title Matriz Visual de Riscos - JurisFinder LEAN
+
+skinparam rectangle {
+    BackgroundColor<<critical>> #FFCDD2
+    BackgroundColor<<attention>> #FFF9C4
+    BackgroundColor<<low>> #C8E6C9
+}
+
+rectangle "IMPACTO" as HEADER {
+}
+
+rectangle "PROBABILIDADE" as YAXIS {
+}
+
+' Grid
+rectangle "          Baixo    |    Medio    |     Alto" as ROW0
+
+rectangle "Alta     |         |            |   **RL1**" <<critical>> as ROW1
+note right of ROW1
+  **RL1 - CRITICO**
+  Codigo IA com bugs sutis
+  ---
+  **Mitigacao:**
+  - Code review rigoroso
+  - QA continuo
+  - Testes automatizados
+end note
+
+rectangle "Media    |         | RL3, RL5   | RL2,RL4,RL6" <<attention>> as ROW2
+note right of ROW2
+  **ATENCAO**
+  - RL2: Full Stack overload
+  - RL3: Dependencia IA
+  - RL4: Qualidade RAG
+  - RL5: Aprendizado IA
+  - RL6: Seguranca codigo
+  ---
+  **Mitigacao:**
+  - Monitorar velocity
+  - SAST/DAST no CI
+  - Metricas RAG rigorosas
+end note
+
+rectangle "Baixa    |         |    R6      |  RL7, R4" <<low>> as ROW3
+note right of ROW3
+  **BAIXO RISCO**
+  - R4: Resistencia usuarios
+  - R6: OCR qualidade
+  - RL7: TL indisponivel
+  ---
+  **Mitigacao:**
+  - Change management
+  - Azure Doc Intelligence
+  - Backup TL definido
+end note
+
+ROW0 -[hidden]down-> ROW1
+ROW1 -[hidden]down-> ROW2
+ROW2 -[hidden]down-> ROW3
+
+legend bottom
+  |= ID |= Risco |= Score |
+  | RL1 | Codigo IA com bugs sutis | **9** |
+  | RL2 | Full Stack sobrecarregado | 6 |
+  | RL4 | Qualidade RAG comprometida | 6 |
+  | RL6 | Seguranca em codigo gerado | 6 |
+  | RL3 | Dependencia de ferramentas IA | 4 |
+  | RL7 | Tech Lead indisponivel | 4 |
+  | R4 | Resistencia dos usuarios | 4 |
+  | RL5 | Atrasos por aprendizado IA | 3 |
+  | R6 | OCR com baixa qualidade | 3 |
+end legend
+
+footer JurisFinder LEAN - Analise de Riscos | Janeiro 2026
+@enduml

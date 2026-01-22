@@ -1,0 +1,63 @@
+@startuml JurisFinder - Shift-Left QA Comparison
+!theme plain
+
+title Comparacao: QA Tradicional vs Shift-Left (LEAN)
+
+skinparam rectangle {
+    BackgroundColor<<original>> #FFCDD2
+    BackgroundColor<<lean>> #C8E6C9
+}
+
+rectangle "**PROPOSTA ORIGINAL (5 meses)**" <<original>> as ORIG {
+    rectangle "Mes 1" as O1 #E0E0E0
+    rectangle "Mes 2" as O2 #E0E0E0
+    rectangle "Mes 3" as O3 #E0E0E0
+    rectangle "Mes 4" as O4 #FFCDD2
+    rectangle "Mes 5" as O5 #FFCDD2
+
+    O1 -right-> O2
+    O2 -right-> O3
+    O3 -right-> O4
+    O4 -right-> O5
+}
+
+note bottom of ORIG
+  **Problemas:**
+  - QA entra so no Mes 4-5
+  - Bugs detectados TARDE
+  - Custo de correcao ALTO
+  - Retrabalho significativo
+end note
+
+rectangle "**PROPOSTA LEAN (4 meses)**" <<lean>> as LEAN {
+    rectangle "Mes 1\n**QA**" as L1 #C8E6C9
+    rectangle "Mes 2\n**QA**" as L2 #C8E6C9
+    rectangle "Mes 3\n**QA**" as L3 #C8E6C9
+    rectangle "Mes 4\n**QA**" as L4 #C8E6C9
+
+    L1 -right-> L2
+    L2 -right-> L3
+    L3 -right-> L4
+}
+
+note bottom of LEAN
+  **Vantagens:**
+  - QA desde o Mes 1 (50%)
+  - Bugs detectados CEDO
+  - Custo de correcao BAIXO
+  - Qualidade continua
+end note
+
+ORIG -[hidden]down-> LEAN
+
+legend right
+  |= Aspecto |= Original |= LEAN |
+  | Inicio QA | Mes 4 | Mes 1 |
+  | Duracao QA | 2 meses | 4 meses |
+  | Modelo | Waterfall | Shift-Left |
+  | Deteccao bugs | Tardia | Precoce |
+  | Custo correcao | Alto | Baixo |
+end legend
+
+footer JurisFinder LEAN - Abordagem Shift-Left Testing | Janeiro 2026
+@enduml

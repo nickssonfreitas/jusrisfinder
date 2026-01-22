@@ -1,0 +1,76 @@
+@startuml JurisFinder - Fluxo de Processamento Busca
+!theme plain
+
+title Fluxo Detalhado de Processamento - Busca
+
+skinparam rectangle {
+    BackgroundColor<<input>> #E3F2FD
+    BackgroundColor<<search>> #FFF3E0
+    BackgroundColor<<filter>> #E8F5E9
+    BackgroundColor<<ml>> #FCE4EC
+    BackgroundColor<<output>> #F3E5F5
+}
+
+rectangle "1. QUERY PARSING" <<input>> {
+    rectangle "Extrair\nentidades:\nnome, data,\ntipo doc" as step1
+}
+
+rectangle "2. EMBEDDING" <<input>> {
+    rectangle "Gerar\nembedding\nda query" as step2
+}
+
+rectangle "3. HYBRID SEARCH" <<search>> {
+    rectangle "Busca\nvetorial +\nkeyword" as step3
+}
+
+rectangle "4. FILTERING" <<filter>> {
+    rectangle "Aplicar\npermissoes\ndo usuario" as step4
+}
+
+rectangle "5. RERANKING" <<search>> {
+    rectangle "Cross-\nencoder\nrerank" as step5
+}
+
+rectangle "6. ML RULES" <<ml>> {
+    rectangle "Verificar\ndocs\nobrigatorios" as step6
+}
+
+rectangle "7. ALERTAS" <<ml>> {
+    rectangle "Gerar\nalertas de\ndocs\nfaltantes" as step7
+}
+
+rectangle "8. RESPONSE" <<output>> {
+    rectangle "Retornar\ntop-k\ndocumentos\n+ alertas" as step8
+}
+
+step1 --> step2
+step2 --> step3
+step3 --> step4
+step4 --> step5
+step5 --> step6
+step6 --> step7
+step7 --> step8
+
+note right of step3
+  **Hybrid Search**
+  - Qdrant (semantico)
+  - BM25 (keyword)
+  - RRF Fusion
+end note
+
+note right of step5
+  **Reranker**
+  - Cohere Rerank v3
+  - ou Cross-encoder local
+  - Melhora precisao
+end note
+
+note right of step6
+  **ML Rules Engine**
+  - Tipo de processo
+  - Docs obrigatorios
+  - Base PostgreSQL
+end note
+
+footer JurisFinder LEAN - Fluxo de Busca | Janeiro 2026
+@enduml

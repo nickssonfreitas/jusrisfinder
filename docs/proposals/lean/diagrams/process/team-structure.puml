@@ -1,0 +1,76 @@
+@startuml JurisFinder - Estrutura Equipe LEAN
+!theme plain
+
+title Estrutura da Equipe LEAN (3.5 FTE)
+
+skinparam rectangle {
+    BackgroundColor<<lead>> #E3F2FD
+    BackgroundColor<<dev>> #E8F5E9
+    BackgroundColor<<ml>> #FFF3E0
+    BackgroundColor<<qa>> #FCE4EC
+}
+
+rectangle "**Tech Lead**\n50% (0.5 FTE)" <<lead>> as TL {
+    rectangle "Decisoes arquiteturais (20%)" as TL1
+    rectangle "Code review rigoroso (40%)" as TL2
+    rectangle "Mentoria e alinhamento (20%)" as TL3
+    rectangle "Stakeholder mgmt (20%)" as TL4
+}
+
+rectangle "**Full Stack Senior**\n100% (1 FTE)" <<dev>> as FS {
+    rectangle "Backend Python/FastAPI (35%)" as FS1
+    rectangle "Frontend React/TS (30%)" as FS2
+    rectangle "Conectores SharePoint/SMB (15%)" as FS3
+    rectangle "DevOps/Infra (15%)" as FS4
+    rectangle "Documentacao (5%)" as FS5
+}
+
+rectangle "**ML Engineer**\n100% (1 FTE)" <<ml>> as ML {
+    rectangle "Pipeline RAG core (30%)" as ML1
+    rectangle "OCR Integration (15%)" as ML2
+    rectangle "Embeddings/Chunking (20%)" as ML3
+    rectangle "Regras ML (20%)" as ML4
+    rectangle "Metricas qualidade (15%)" as ML5
+}
+
+rectangle "**QA Tester**\n50% (0.5 FTE)" <<qa>> as QA {
+    rectangle "Testes exploratorios (30%)" as QA1
+    rectangle "Automacao E2E (35%)" as QA2
+    rectangle "Testes integracao (20%)" as QA3
+    rectangle "Validacao RAG (15%)" as QA4
+}
+
+TL -[hidden]-> FS
+FS -[hidden]-> ML
+ML -[hidden]-> QA
+
+note right of TL
+  **Critico:**
+  40% do tempo em
+  code review para
+  validar codigo IA
+end note
+
+note right of FS
+  **AI-Assisted:**
+  Alta produtividade
+  com Claude Code,
+  Cursor, Copilot
+end note
+
+note right of ML
+  **Especialista:**
+  RAG + OCR + ML Rules
+  Responsavel pela
+  qualidade semantica
+end note
+
+note right of QA
+  **Shift-Left:**
+  Atua desde S1
+  QA continuo
+  durante todo projeto
+end note
+
+footer JurisFinder LEAN - Total: 3.5 FTE | Custo: R$ 341.200 (4 meses) | Janeiro 2026
+@enduml

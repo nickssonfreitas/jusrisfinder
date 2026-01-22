@@ -1,0 +1,67 @@
+@startuml JurisFinder - Piramide de Testes
+!theme plain
+
+title Piramide de Testes - JurisFinder LEAN
+
+skinparam rectangle {
+    BackgroundColor<<e2e>> #FFCDD2
+    BackgroundColor<<integration>> #FFF9C4
+    BackgroundColor<<unit>> #C8E6C9
+}
+
+rectangle "**E2E Tests**\n(Playwright)\n**10%**" <<e2e>> as E2E #FFCDD2 {
+}
+
+rectangle "**Integration Tests**\n(pytest)\n**20%**" <<integration>> as INT #FFF9C4 {
+}
+
+rectangle "**Unit Tests**\n(pytest + vitest)\n**70%**" <<unit>> as UNIT #C8E6C9 {
+}
+
+E2E -[hidden]down-> INT
+INT -[hidden]down-> UNIT
+
+note right of E2E
+  **E2E (10%)**
+  - Happy paths criticos
+  - Fluxo de busca completo
+  - Autenticacao
+  - Exportacao
+  ---
+  **Ferramenta:** Playwright
+  **Cobertura:** Fluxos principais
+end note
+
+note right of INT
+  **Integration (20%)**
+  - Conectores SharePoint/SMB
+  - Pipeline RAG completo
+  - API endpoints
+  - Database queries
+  ---
+  **Ferramenta:** pytest + testcontainers
+  **Cobertura:** Fluxos criticos
+end note
+
+note right of UNIT
+  **Unit (70%)**
+  - Business logic
+  - Chunking
+  - Query parsing
+  - ML Rules
+  - Utilitarios
+  ---
+  **Ferramentas:** pytest (back), vitest (front)
+  **Cobertura:** >85%
+end note
+
+legend bottom
+  |= Tipo |= Meta |= Bloqueante |
+  | Unit Tests | 100% pass, >85% coverage | Sim |
+  | Integration | Fluxos criticos | Sim |
+  | E2E | Happy paths | Sim |
+  | Performance | P95 < 5s | Sim |
+end legend
+
+footer JurisFinder LEAN - Estrategia de Testes | Janeiro 2026
+@enduml

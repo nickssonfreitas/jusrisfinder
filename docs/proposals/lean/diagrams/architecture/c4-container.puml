@@ -1,0 +1,53 @@
+@startuml JurisFinder - C4 Container Diagram
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+title Diagrama de Container - JurisFinder LEAN (C4 Level 2)
+
+Person(usuario, "Usuario", "Advogado, Analista Juridico ou Gestor")
+
+System_Boundary(jurisfinder, "JurisFinder") {
+    Container(spa, "Frontend SPA", "React, TypeScript, TailwindCSS", "Interface de busca, visualizacao de resultados, gestao de pacotes e alertas de documentos obrigatorios")
+
+    Container(gateway, "API Gateway", "Kong / AWS API Gateway", "Rate limiting, autenticacao JWT, logging e roteamento")
+
+    Container(search_svc, "Search Service", "Python, FastAPI", "Query parsing, busca hibrida (semantica + keyword), reranking, controle de acesso e ML Rules Engine")
+
+    Container(indexer_svc, "Indexer Service", "Python, Celery", "Crawlers, OCR (Azure), geracao de embeddings, chunking e extracao de metadata")
+
+    Container(export_svc, "Export Service", "Python, FastAPI", "Construcao de pacotes, geracao de PDF, exportacao ZIP")
+
+    ContainerDb(postgres, "PostgreSQL", "PostgreSQL 16", "Metadata de documentos, usuarios, auditoria, ML Rules e configuracoes")
+
+    ContainerDb(qdrant, "Qdrant", "Vector Database", "Armazenamento de embeddings e busca por similaridade vetorial")
+
+    ContainerDb(redis, "Redis", "Cache/Queue", "Cache de sessoes, cache de queries e fila de tarefas")
+}
+
+System_Ext(ad, "Active Directory", "Autenticacao LDAP")
+System_Ext(sharepoint, "SharePoint Online", "Repositorio de docs (Graph API)")
+System_Ext(fileserver, "File Server", "Pastas de rede (SMB)")
+System_Ext(azure_ocr, "Azure Document Intelligence", "Servico OCR")
+System_Ext(openai, "OpenAI API", "Embeddings e LLM")
+
+Rel(usuario, spa, "Usa", "HTTPS")
+Rel(spa, gateway, "Requisicoes API", "HTTPS/REST")
+Rel(gateway, search_svc, "Busca", "HTTP")
+Rel(gateway, export_svc, "Exportacao", "HTTP")
+Rel(search_svc, qdrant, "Busca vetorial", "gRPC")
+Rel(search_svc, postgres, "Metadata e ML Rules", "SQL")
+Rel(search_svc, redis, "Cache", "Redis Protocol")
+Rel(indexer_svc, qdrant, "Armazena vectors", "gRPC")
+Rel(indexer_svc, postgres, "Armazena metadata", "SQL")
+Rel(indexer_svc, redis, "Fila de tarefas", "Redis Protocol")
+Rel(indexer_svc, sharepoint, "Indexa documentos", "Graph API")
+Rel(indexer_svc, fileserver, "Indexa documentos", "SMB/CIFS")
+Rel(indexer_svc, azure_ocr, "Extrai texto OCR", "REST API")
+Rel(indexer_svc, openai, "Gera embeddings", "REST API")
+Rel(search_svc, openai, "Embeddings de query", "REST API")
+Rel(gateway, ad, "Valida autenticacao", "LDAP")
+Rel(export_svc, postgres, "Recupera docs", "SQL")
+
+SHOW_LEGEND()
+
+footer JurisFinder LEAN - Versao 2.1 | Proposta Tecnica | Janeiro 2026
+@enduml

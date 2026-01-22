@@ -1,0 +1,62 @@
+@startuml JurisFinder - Fluxo Validacao Codigo IA
+!theme plain
+
+title Fluxo de Validacao de Codigo Gerado por IA
+
+|Developer|
+start
+:1. Define prompt/contexto\npara geracao de codigo;
+
+|IA|
+:2. Gera codigo\nbaseado no prompt;
+
+|Developer|
+:3. Revisao local\n(entender codigo gerado);
+:4. Escreve testes unitarios;
+:5. Executa lint + type check;
+
+if (Lint OK?) then (Nao)
+    :Corrigir problemas;
+    detach
+else (Sim)
+endif
+
+:6. Cria PR + CI Pipeline;
+
+|TL Review|
+:7. Code Review rigoroso;
+
+note right
+  Checklist:
+  - Logica correta?
+  - Seguranca OK?
+  - Padroes seguidos?
+  - Sem hardcode secrets?
+end note
+
+if (Aprovado?) then (Nao)
+    |Developer|
+    :8. Ajustes;
+    detach
+else (Sim)
+endif
+
+|Developer|
+:9. Merge para branch principal;
+
+|QA|
+:10. Validacao funcional;
+:11. Testes de integracao;
+
+if (Qualidade OK?) then (Nao)
+    :Corrigir bugs;
+    detach
+else (Sim)
+endif
+
+:Feature validada;
+
+stop
+
+footer JurisFinder LEAN - Validacao de Codigo AI-Generated
+@enduml

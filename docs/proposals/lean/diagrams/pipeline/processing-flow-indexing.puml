@@ -1,0 +1,78 @@
+@startuml JurisFinder - Fluxo de Processamento Indexacao
+!theme plain
+
+title Fluxo Detalhado de Processamento - Indexacao
+
+skinparam rectangle {
+    BackgroundColor<<crawl>> #E3F2FD
+    BackgroundColor<<ocr>> #FFF3E0
+    BackgroundColor<<process>> #E8F5E9
+    BackgroundColor<<store>> #F3E5F5
+}
+
+rectangle "1. CRAWLING" <<crawl>> {
+    rectangle "Detectar\nnovos/alterados" as step1
+}
+
+rectangle "2. OCR (se necessario)" <<ocr>> {
+    rectangle "PDF/Imagem\nescaneado?" as step2
+    rectangle "Azure Doc\nIntelligence\nOCR + Layout" as step2a
+}
+
+rectangle "3. PARSING" <<process>> {
+    rectangle "Extrair\ntexto" as step3
+}
+
+rectangle "4. CHUNKING" <<process>> {
+    rectangle "Dividir em\nchunks de\n512 tokens" as step4
+}
+
+rectangle "5. EMBEDDING" <<process>> {
+    rectangle "Gerar\nvetores\n3072d" as step5
+}
+
+rectangle "6. CLASSIFICATION" <<process>> {
+    rectangle "Classificar\ntipo doc\n(ML Rules)" as step6
+}
+
+rectangle "7. INDEXING" <<store>> {
+    rectangle "Armazenar\nem Qdrant" as step7a
+}
+
+rectangle "8. METADATA" <<store>> {
+    rectangle "Salvar\nmetadados\nPostgreSQL" as step7b
+}
+
+step1 --> step2
+step2 --> step2a : "Sim"
+step2 --> step3 : "Nao"
+step2a --> step3
+step3 --> step4
+step4 --> step5
+step5 --> step6
+step6 --> step7a
+step6 --> step7b
+
+note bottom of step2a
+  **Azure Document Intelligence**
+  - Detecta layout e tabelas
+  - Alta precisao em PT-BR
+  - ~R$ 800/mes
+end note
+
+note bottom of step4
+  **Chunking Strategy**
+  - 512 tokens/chunk
+  - 50 tokens overlap
+  - Preserva paragrafos
+end note
+
+note bottom of step5
+  **Embedding Model**
+  - text-embedding-3-large
+  - 3072 dimensoes
+  - OpenAI API
+end note
+
+footer JurisFinder LEAN - Fluxo de Indexacao | Janeiro 2026
+@enduml

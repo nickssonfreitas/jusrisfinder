@@ -1,0 +1,63 @@
+@startuml JurisFinder - Pipeline RAG Busca
+!theme plain
+
+title Pipeline RAG - Busca (com ML Rules)
+
+skinparam rectangle {
+    BackgroundColor #E8F4FD
+    BorderColor #0078D4
+}
+
+skinparam note {
+    BackgroundColor #E5F4E3
+    BorderColor #28A745
+}
+
+|Usuario|
+start
+:Query em linguagem natural\n"docs EPI funcionario Joao 2020-2023";
+
+|Query Parser|
+:Extrair entidades\n- Nome: Joao\n- Tipo: EPI\n- Periodo: 2020-2023;
+
+|Embedding|
+:Gerar embedding\nda query;
+
+|Hybrid Search|
+fork
+    :Busca Vetorial\n(Qdrant - semantica);
+fork again
+    :Busca Keyword\n(BM25 - termos exatos);
+end fork
+:Fusion RRF\n(Reciprocal Rank Fusion);
+
+|Access Control|
+:Filtrar por\npermissoes do usuario\n(ACL do AD);
+
+|Reranker|
+:Cross-encoder\nreordenar top-k\n(Cohere Rerank v3);
+
+|ML Rules Engine|
+:Verificar documentos\nobrigatorios por\ntipo de processo;
+note right
+  **Regras por Processo:**
+  - Acidente: ASO, CAT, EPI, PPRA
+  - Rescisao: Contrato, Rescisao
+  - Horas Extras: Ponto, Acordo
+end note
+
+if (Docs faltantes?) then (Sim)
+    :Gerar alertas\nde documentos\nobrigatorios faltantes;
+else (Nao)
+endif
+
+|Response|
+:Retornar resultados\nranqueados + alertas;
+
+|Usuario|
+:Visualizar resultados\ne alertas;
+
+stop
+
+footer JurisFinder LEAN - Pipeline de Busca | Janeiro 2026
+@enduml

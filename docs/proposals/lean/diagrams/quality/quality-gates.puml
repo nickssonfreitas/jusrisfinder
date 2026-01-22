@@ -1,0 +1,89 @@
+@startuml JurisFinder - Quality Gates
+!theme plain
+
+title Quality Gates - CI/CD Pipeline
+
+skinparam rectangle {
+    BackgroundColor<<gate>> #E3F2FD
+    BackgroundColor<<pass>> #C8E6C9
+    BackgroundColor<<fail>> #FFCDD2
+}
+
+|Developer|
+start
+:Commit + Push;
+
+|CI Pipeline|
+
+rectangle "**GATE 1: Lint**" <<gate>> as G1 {
+    :ruff (Python)\neslint (TypeScript);
+}
+if (0 errors?) then (Sim)
+else (Nao)
+    :BLOQUEADO;
+    stop
+endif
+
+rectangle "**GATE 2: Type Check**" <<gate>> as G2 {
+    :mypy (Python)\ntsc (TypeScript);
+}
+if (0 errors?) then (Sim)
+else (Nao)
+    :BLOQUEADO;
+    stop
+endif
+
+rectangle "**GATE 3: Unit Tests**" <<gate>> as G3 {
+    :pytest + vitest;
+}
+if (100% pass?) then (Sim)
+else (Nao)
+    :BLOQUEADO;
+    stop
+endif
+
+rectangle "**GATE 4: Coverage**" <<gate>> as G4 {
+    :coverage report;
+}
+if (> 80%?) then (Sim)
+else (Nao)
+    :BLOQUEADO;
+    stop
+endif
+
+rectangle "**GATE 5: Security Scan**" <<gate>> as G5 {
+    :Trivy / Snyk\nSAST + Dependencias;
+}
+if (0 critical/high?) then (Sim)
+else (Nao)
+    :BLOQUEADO;
+    stop
+endif
+
+rectangle "**GATE 6: E2E Tests**" <<gate>> as G6 {
+    :Playwright;
+}
+if (100% pass?) then (Sim)
+else (Nao)
+    :BLOQUEADO;
+    stop
+endif
+
+|Deploy|
+:Deploy para ambiente;
+<<pass>> :APROVADO;
+
+stop
+
+legend bottom
+  |= Gate |= Ferramenta |= Criterio |= Bloqueante |
+  | Lint | ruff, eslint | 0 errors | Sim |
+  | Type Check | mypy, tsc | 0 errors | Sim |
+  | Unit Tests | pytest, vitest | 100% pass | Sim |
+  | Coverage | coverage | > 80% | Sim |
+  | Security | Trivy/Snyk | 0 critical/high | Sim |
+  | E2E | Playwright | 100% pass | Sim |
+end legend
+
+footer JurisFinder LEAN - Quality Gates CI/CD | Janeiro 2026
+@enduml

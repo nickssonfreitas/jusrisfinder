@@ -1,0 +1,45 @@
+@startuml JurisFinder - Mapa de Integracoes LEAN
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+title Mapa de Integracoes - JurisFinder LEAN
+
+!define ICONURL https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/master
+
+skinparam rectangle {
+    BackgroundColor<<external>> #E8F4FD
+    BorderColor<<external>> #0078D4
+    BackgroundColor<<internal>> #F5F5F5
+    BorderColor<<internal>> #333333
+    BackgroundColor<<ocr>> #FFF4E5
+    BorderColor<<ocr>> #FF8C00
+}
+
+rectangle "**Active Directory**\n\nProtocolo: LDAP\nPorta: 389/636\nUso: Auth + ACL" <<external>> as AD
+rectangle "**SharePoint Online**\n\nProtocolo: REST\nAPI: Graph API\nAuth: OAuth2" <<external>> as SP
+rectangle "**File Server**\n\nProtocolo: SMB\nPorta: 445\nAuth: Kerberos" <<external>> as FS
+
+rectangle "**JurisFinder**\n\nSistema de Busca\nInteligente" <<internal>> as JF
+
+rectangle "**Azure Document\nIntelligence**\n\nServico OCR\nREST API" <<ocr>> as OCR
+
+AD -down-> JF : "Autenticacao\n+ Permissoes"
+SP -down-> JF : "Indexacao\n+ Recuperacao"
+FS -down-> JF : "Indexacao\n+ Recuperacao"
+JF -down-> OCR : "Extracao de\ntexto (PDF/IMG)"
+
+note right of AD
+  **Escopo LEAN**
+  - Apenas 3 integracoes
+  - ELO removido
+  - Sense removido
+end note
+
+note bottom of OCR
+  **Azure Document Intelligence**
+  - Custo: ~R$ 800/mes
+  - Alta precisao em PT-BR
+  - Suporte a layout/tabelas
+end note
+
+footer JurisFinder LEAN - Versao 2.1 | Mapa de Integracoes | Janeiro 2026
+@enduml

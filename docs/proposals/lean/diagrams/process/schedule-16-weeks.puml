@@ -1,0 +1,55 @@
+@startuml JurisFinder - Cronograma 16 Semanas
+
+title Cronograma - JurisFinder LEAN (16 Semanas)
+
+skinparam rectangle {
+    BackgroundColor<<m1>> LightBlue
+    BackgroundColor<<m2>> LightGreen
+    BackgroundColor<<m3>> Gold
+    BackgroundColor<<m4>> LightCoral
+    BackgroundColor<<m5>> Plum
+    BackgroundColor<<m6>> LightGray
+    BackgroundColor<<qa>> Cyan
+}
+
+rectangle "MES 1 (S1-S4)" as M1 {
+    rectangle "Discovery & Setup\nS1-S2 (2 sem)" <<m1>> as DS
+    rectangle "RAG Core + OCR\nS3-S4..." <<m2>> as RAG1
+}
+
+rectangle "MES 2 (S5-S8)" as M2 {
+    rectangle "RAG Core + OCR\n...S5-S8" <<m2>> as RAG2
+}
+
+rectangle "MES 3 (S9-S12)" as M3 {
+    rectangle "Conectores\nS9-S10 (2 sem)" <<m3>> as CON
+    rectangle "Frontend\nS11-S12..." <<m4>> as FE1
+}
+
+rectangle "MES 4 (S13-S16)" as M4 {
+    rectangle "Frontend\n...S13" <<m4>> as FE2
+    rectangle "Integracoes AD\nS14 (1 sem)" <<m5>> as INT
+    rectangle "Testes & Go-Live\nS15-S16 (2 sem)" <<m6>> as GL
+}
+
+rectangle "QA CONTINUO (S1-S16) - Shift-Left Testing" <<qa>> as QA
+
+DS -right-> RAG1
+RAG1 -right-> RAG2
+RAG2 -right-> CON
+CON -right-> FE1
+FE1 -right-> FE2
+FE2 -right-> INT
+INT -right-> GL
+
+M1 -[hidden]down-> QA
+M2 -[hidden]down-> QA
+M3 -[hidden]down-> QA
+M4 -[hidden]down-> QA
+
+note bottom of QA
+  Equipe: TL 50% | Full Stack 100% | ML Engineer 100% | QA 50%
+  Total: 3.5 FTE | Custo: R$ 341.200
+end note
+
+@enduml

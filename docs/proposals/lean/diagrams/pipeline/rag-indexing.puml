@@ -1,0 +1,75 @@
+@startuml JurisFinder - Pipeline RAG Indexacao
+!theme plain
+
+title Pipeline RAG - Indexacao (com OCR)
+
+skinparam rectangle {
+    BackgroundColor #E8F4FD
+    BorderColor #0078D4
+}
+
+skinparam activity {
+    BackgroundColor #F5F5F5
+    BorderColor #333333
+}
+
+skinparam note {
+    BackgroundColor #FFF4E5
+    BorderColor #FF8C00
+}
+
+|Fonte de Dados|
+start
+:Documento\n(PDF, DOCX, XLS, IMG);
+
+|Crawler|
+:Detectar novos/alterados\n(incremental sync);
+
+|OCR Decision|
+if (PDF escaneado\nou Imagem?) then (Sim)
+    |Azure OCR|
+    :Azure Document Intelligence\nOCR + Layout Recognition;
+    note right
+      **Custo:** ~R$ 800/mes
+      **Precisao:** >95% PT-BR
+      **Formatos:** PDF, JPG, PNG, TIFF
+    end note
+else (Nao)
+    |Parser|
+    :Extrair texto\ndiretamente;
+endif
+
+|Parser|
+:Texto extraido;
+
+|Chunking|
+:Dividir em chunks\n(512 tokens, 50 overlap);
+note right
+  **Estrategia:**
+  - Respeitar paragrafos
+  - Preservar contexto
+  - Metadados do doc pai
+end note
+
+|Embedding|
+:Gerar vetores\n(text-embedding-3-large)\n3072 dimensoes;
+
+|ML Classification|
+:Classificar tipo\nde documento\n(ASO, PPRA, etc.);
+note right
+  **Modelo:** BERT-PT
+  **Classes:** ~15 tipos
+  **F1 Target:** >85%
+end note
+
+|Storage|
+fork
+    :Armazenar vetores\nem **Qdrant**;
+fork again
+    :Salvar metadados\nem **PostgreSQL**;
+end fork
+
+stop
+
+footer JurisFinder LEAN - Pipeline de Indexacao | Janeiro 2026
+@enduml

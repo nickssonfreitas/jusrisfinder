@@ -1,0 +1,31 @@
+@startuml JurisFinder - C4 Context Diagram
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+title Diagrama de Contexto - JurisFinder LEAN (C4 Level 1)
+
+Person(advogado, "Advogado / Analista Juridico", "Usuario principal que busca documentos para processos trabalhistas")
+Person(gestor_seg, "Gestor de Seguranca", "Fornece documentos de seguranca do trabalho")
+Person(admin_rh, "Administrador RH", "Fornece registros de funcionarios")
+Person(admin_ti, "Administrador TI", "Gerencia sistema e integracoes")
+
+System(jurisfinder, "JurisFinder", "Sistema inteligente de busca e recuperacao de documentos para processos trabalhistas usando RAG, OCR e ML Rules")
+
+System_Ext(ad, "Active Directory", "Servico de autenticacao e controle de acesso corporativo")
+System_Ext(sharepoint, "SharePoint Online", "Repositorio de documentos na nuvem Microsoft")
+System_Ext(fileserver, "Pastas de Rede (File Server)", "Servidor de arquivos corporativo (SMB/CIFS)")
+System_Ext(azure_ocr, "Azure Document Intelligence", "Servico de OCR para documentos escaneados")
+
+Rel(advogado, jurisfinder, "Busca documentos, visualiza resultados, exporta pacotes", "HTTPS")
+Rel(gestor_seg, jurisfinder, "Consulta e fornece documentos de seguranca", "HTTPS")
+Rel(admin_rh, jurisfinder, "Consulta registros de funcionarios", "HTTPS")
+Rel(admin_ti, jurisfinder, "Monitora e gerencia sistema", "HTTPS")
+
+Rel(jurisfinder, ad, "Autentica usuarios, verifica permissoes", "LDAP/LDAPS")
+Rel(jurisfinder, sharepoint, "Indexa e recupera documentos", "Graph API")
+Rel(jurisfinder, fileserver, "Indexa e recupera documentos", "SMB/CIFS")
+Rel(jurisfinder, azure_ocr, "Extrai texto de documentos escaneados", "REST API")
+
+SHOW_LEGEND()
+
+footer JurisFinder LEAN - Versao 2.1 | Proposta Tecnica | Janeiro 2026
+@enduml
